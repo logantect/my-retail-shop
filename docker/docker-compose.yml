@@ -1,0 +1,115 @@
+services:
+  kafka-node1:
+    image: apache/kafka:3.8.0
+    container_name: kafka-node1
+    ports:
+      - "9092:9092"
+      - "9093:9093"  # Controller listener port
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka-node1:9092,CONTROLLER://kafka-node1:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-node1:9093,2@kafka-node2:9093,3@kafka-node3:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-node1:9092
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - ./kafka/data/kafka-data1:/var/lib/kafka/data
+    networks:
+      - kafka-net
+
+  kafka-node2:
+    image: apache/kafka:3.8.0
+    container_name: kafka-node2
+    ports:
+      - "9094:9092"
+      - "9095:9093"  # Controller listener port
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka-node2:9092,CONTROLLER://kafka-node2:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-node1:9093,2@kafka-node2:9093,3@kafka-node3:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-node2:9094
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - ./kafka/data/kafka-data2:/var/lib/kafka/data
+    networks:
+      - kafka-net
+
+  kafka-node3:
+    image: apache/kafka:3.8.0
+    container_name: kafka-node3
+    ports:
+      - "9096:9092"
+      - "9097:9093"  # Controller listener port
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka-node3:9092,CONTROLLER://kafka-node3:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-node1:9093,2@kafka-node2:9093,3@kafka-node3:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-node3:9096
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - ./kafka/data/kafka-data3:/var/lib/kafka/data
+    networks:
+      - kafka-net
+
+  redis:
+    image: redis:7.4
+    container_name: redis
+    ports:
+      - "7379:6379"
+    networks:
+      - redis-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    ports:
+      - "4306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: a123456A!
+      MYSQL_DATABASE: product
+      MYSQL_USER: user
+      MYSQL_PASSWORD: a123456A!
+    volumes:
+      - ./db/mysql/data:/var/lib/mysql
+      - ./db/mysql/config:/etc/mysql/conf.d
+      - ./db/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - mysql-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+networks:
+  kafka-net:
+    driver: bridge
+  redis-net:
+    driver: bridge
+  mysql-net:
+    driver: bridge

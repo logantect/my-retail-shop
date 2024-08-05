@@ -1,1 +1,1 @@
-rootProject.name = "my-retail-shop"
+rootProject.name = "retail-store-msa"
